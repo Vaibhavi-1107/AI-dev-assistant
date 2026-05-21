@@ -363,7 +363,7 @@
       font-size: clamp(2.8rem, 6vw, 5rem);
       font-weight: 800;
       letter-spacing: -0.04em;
-      line-height: 1.05;
+      line-height: 1.16;
       margin-bottom: 20px;
     }
 
@@ -373,6 +373,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      display: inline-block;
     }
 
     .hero-sub {
@@ -1636,7 +1637,8 @@
     /* responsive */
     @media(max-width:600px) {
       .hero h1 {
-        font-size: 2.2rem
+        font-size: 2.2rem;
+        line-height: 1.18
       }
 
       nav {
@@ -1752,7 +1754,8 @@
       }
 
       .hero h1 {
-        font-size: 1.9rem
+        font-size: 1.9rem;
+        line-height: 1.2
       }
 
       .feat-pill-info p {
@@ -2036,9 +2039,6 @@
           <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze Code">
             <div class="spinner" id="spinner" aria-hidden="true"></div>
             <span class="btn-text">Analyze Code</span>
-          </button>
-          <button id="analyze-btn" title="Analyze Code (Ctrl+Enter)" align="center">Analyze <span
-              class="desktop-hint">(Ctrl+Enter)</span>
           </button>
         </div>
       </div>
@@ -2404,15 +2404,6 @@
           }
         }
 
-        // CTRL + ENTER
-        else if (
-          e.key === 'Enter' &&
-          (e.ctrlKey || e.metaKey)
-        ) {
-
-          e.preventDefault();
-          doAnalyze();
-        }
       });
 
       /* ═══════════════════════════════════════════════════════════════

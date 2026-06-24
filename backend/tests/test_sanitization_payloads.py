@@ -174,7 +174,12 @@ def test_script_payload_in_code_snippet_is_plain_text_in_json():
     assert r.status_code == 200
     data = r.json()
     assert_json_serializable_plain_text(data)
-    assert SCRIPT_TAG in json.dumps(data) or "<script>" in json.dumps(data).lower()
+    dumped = json.dumps(data)
+    # After Issue #579 fix, the code field is HTML-escaped — verify it's stored safely
+    assert "&lt;script&gt;" in dumped or SCRIPT_TAG not in dumped, (
+        "Expected <script> to be HTML-escaped in response, not echoed as raw executable HTML"
+    )
+
 
 
 @pytest.mark.parametrize("stored", STORED_HISTORY_PAYLOADS)

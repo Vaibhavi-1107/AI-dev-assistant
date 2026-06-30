@@ -1,10 +1,12 @@
 """Debugging router — POST /debugging/"""
 
+import html
+
 from fastapi import APIRouter
 
 from ..schemas import CodeRequest, DebuggingResponse
 from ..services.code_assistant import detect_language, run_bug_detection
-import html
+
 router = APIRouter()
 
 
@@ -51,6 +53,5 @@ async def debug(req: CodeRequest):
         "error_count": errors,
         "warning_count": warnings,
         "info_count": infos,
-        "code": html.escape(req.code),   # Issue #579
+        "code": html.escape(req.code),  # Issue #579
     }
-

@@ -4,12 +4,12 @@ Run: cd backend && pytest -v
 """
 
 import json
+import os
+import sys
+from pathlib import Path
 
 import pytest
-from pathlib import Path
 from fastapi.testclient import TestClient
-import sys
-import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app import main as app_main
@@ -18,8 +18,11 @@ client = TestClient(app_main.app)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+
 def load_fixture(filename: str) -> str:
     return (FIXTURES_DIR / filename).read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limit_state():
     app_main._request_counts.clear()
@@ -481,7 +484,6 @@ def test_debug_kotlin():
     assert d is not None
 
 
-
 def test_debug_cpp_syntax_errors():
     code = "void main() {\n    cout << 'Hello World'\n}"
     r = client.post("/debugging/", json={"code": code, "language": "cpp"})
@@ -562,15 +564,20 @@ def test_add():
     d = r.json()
     assert d["overall_score"] >= 60  # clean code should score reasonably
 
+
 def test_suggestions_observability_print_only_python():
     # Pasting code with print() in Java should NOT trigger the Observability suggestion
-    r_java = client.post("/suggestions/", json={"code": 'print("hello");', "language": "java"})
+    r_java = client.post(
+        "/suggestions/", json={"code": 'print("hello");', "language": "java"}
+    )
     assert r_java.status_code == 200
     s_java = [s["category"] for s in r_java.json()["suggestions"]]
     assert "Observability" not in s_java
 
     # Pasting code with print() in Python SHOULD trigger the Observability suggestion
-    r_py = client.post("/suggestions/", json={"code": 'print("hello")', "language": "python"})
+    r_py = client.post(
+        "/suggestions/", json={"code": 'print("hello")', "language": "python"}
+    )
     assert r_py.status_code == 200
     s_py = [s["category"] for s in r_py.json()["suggestions"]]
     assert "Observability" in s_py
@@ -724,7 +731,9 @@ def test_get_stream_done_event_present():
 
 
 def test_get_stream_with_language_hint():
-    r = client.get("/analyze/stream", params={"code": JS_CODE, "language": "javascript"})
+    r = client.get(
+        "/analyze/stream", params={"code": JS_CODE, "language": "javascript"}
+    )
     assert r.status_code == 200
     events = _parse_sse_events(r.text)
     exp = next(e["data"] for e in events if e["type"] == "explanation")
@@ -762,7 +771,7 @@ XSS_SCRIPT_VECTORS: list[str] = [
     "<svg/onload=alert(1)>",
     "<svg><script>alert(1)</script></svg>",
     "<body onload=alert('xss')>",
-    '<iframe src="javascript:alert(\'xss\')"></iframe>',
+    "<iframe src=\"javascript:alert('xss')\"></iframe>",
     "<details open ontoggle=alert(1)>",
     "<math><mtext></p><script>alert(1)</script>",
     '<a href="javascript:alert(document.cookie)">click</a>',
@@ -827,9 +836,9 @@ def test_xss_payload_in_code_does_not_produce_executable_html(
     the backend does not amplify risk by echoing raw HTML.
     """
     r = client.post(endpoint, json={"code": payload, "language": "python"})
-    assert r.status_code == 200, (
-        f"Endpoint {endpoint} returned {r.status_code} for XSS payload"
-    )
+    assert (
+        r.status_code == 200
+    ), f"Endpoint {endpoint} returned {r.status_code} for XSS payload"
     dangerous, needle = _response_contains_dangerous_html(r.text)
     assert not dangerous, (
         f"Dangerous pattern '{needle}' found unescaped in {endpoint} response "
@@ -839,11 +848,11 @@ def test_xss_payload_in_code_does_not_produce_executable_html(
 
 # Encoded / obfuscated variants
 XSS_ENCODED_VECTORS: list[tuple[str, str]] = [
-    ("html_entity",   "&lt;script&gt;alert('xss')&lt;/script&gt;"),
-    ("decimal_ref",   "&#60;script&#62;alert(1)&#60;/script&#62;"),
-    ("url_encoded",   "%3Cscript%3Ealert(1)%3C/script%3E"),
-    ("null_byte",     "<scr\x00ipt>alert('xss')</scr\x00ipt>"),
-    ("ansi_escape",   "\x1b[31m<script>alert(1)</script>\x1b[0m"),
+    ("html_entity", "&lt;script&gt;alert('xss')&lt;/script&gt;"),
+    ("decimal_ref", "&#60;script&#62;alert(1)&#60;/script&#62;"),
+    ("url_encoded", "%3Cscript%3Ealert(1)%3C/script%3E"),
+    ("null_byte", "<scr\x00ipt>alert('xss')</scr\x00ipt>"),
+    ("ansi_escape", "\x1b[31m<script>alert(1)</script>\x1b[0m"),
 ]
 
 
@@ -859,9 +868,9 @@ def test_encoded_xss_variants_do_not_produce_executable_html(
     ANSI escape sequences that some parsers might strip before rendering.
     """
     r = client.post(endpoint, json={"code": payload, "language": "python"})
-    assert r.status_code == 200, (
-        f"Endpoint {endpoint} returned {r.status_code} for encoded variant '{variant}'"
-    )
+    assert (
+        r.status_code == 200
+    ), f"Endpoint {endpoint} returned {r.status_code} for encoded variant '{variant}'"
     dangerous, needle = _response_contains_dangerous_html(r.text)
     assert not dangerous, (
         f"Dangerous pattern '{needle}' found in {endpoint} response "
@@ -882,12 +891,15 @@ def test_xss_in_code_does_not_crash_api(endpoint: str) -> None:
     assert r.status_code == 200
 
 
-@pytest.mark.parametrize("lang,code", [
-    ("python",     "def add(a: int, b: int) -> int:\n    return a + b\n"),
-    ("python",     "if x < 10 and y > 0:\n    print('ok')\n"),
-    ("javascript", "const add = (a, b) => a + b;\nconsole.log(add(1, 2));\n"),
-    ("cpp",        "#include <iostream>\nint main() { return 0; }\n"),
-])
+@pytest.mark.parametrize(
+    "lang,code",
+    [
+        ("python", "def add(a: int, b: int) -> int:\n    return a + b\n"),
+        ("python", "if x < 10 and y > 0:\n    print('ok')\n"),
+        ("javascript", "const add = (a, b) => a + b;\nconsole.log(add(1, 2));\n"),
+        ("cpp", "#include <iostream>\nint main() { return 0; }\n"),
+    ],
+)
 def test_normal_code_still_analyzes_after_xss_fix(lang: str, code: str) -> None:
     """
     Issue #579 — Normal code must continue to analyze correctly.
